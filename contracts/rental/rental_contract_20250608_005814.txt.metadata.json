@@ -1,0 +1,13 @@
+{
+  "property_name": "residense",
+  "address": "osaka",
+  "rent": "300000",
+  "deposit": "50000",
+  "key_money": "30000",
+  "period": "2",
+  "landlord_name": "iwate",
+  "tenant_name": "morioka",
+  "created_at": "2025-06-08T00:58:14.086975",
+  "file_path": "contracts\\rental\\rental_contract_20250608_005814.txt",
+  "contract_type": "rental"
+}

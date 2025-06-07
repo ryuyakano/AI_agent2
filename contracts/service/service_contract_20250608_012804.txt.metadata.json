@@ -1,0 +1,12 @@
+{
+  "service_description": "プログラム",
+  "period": "6",
+  "compensation": "300000",
+  "payment_terms": "25",
+  "client_company": "uuu",
+  "client_representative": "syaka",
+  "contractor_name": "ryu",
+  "created_at": "2025-06-08T01:28:04.233451",
+  "file_path": "contracts\\service\\service_contract_20250608_012804.txt",
+  "contract_type": "service"
+}

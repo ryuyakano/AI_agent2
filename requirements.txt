@@ -1,5 +1,7 @@
-langchain
 openai
 langfuse
 python-dotenv
-langchain-community
+click
+pydantic
+asyncio
+aiofiles

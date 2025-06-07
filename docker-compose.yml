@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   postgres:
     image: postgres:15
@@ -11,20 +9,27 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U langfuse"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   langfuse:
     image: ghcr.io/langfuse/langfuse:2.95
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     ports:
       - "3000:3000"
     environment:
       NEXTAUTH_SECRET: changeme
       DATABASE_URL: postgres://langfuse:langfuse@postgres:5432/langfuse
-      NEXTAUTH_URL: http://localhost:3000             # ← 追加①
+      NEXTAUTH_URL: http://localhost:3000
       SALT: a7ed03e7a2fa467baf74e9c3a4b6dede  
       SENTRY_DSN: ""
       SENTRY_AUTO_UPLOAD_SOURCE_MAPS: "false"
-    volumes:
-      - ./langfuse_data:/data
+
+volumes:
+  postgres_data:

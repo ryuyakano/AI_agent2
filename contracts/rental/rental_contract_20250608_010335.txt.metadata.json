@@ -1,0 +1,13 @@
+{
+  "property_name": "q",
+  "address": "w",
+  "rent": "2",
+  "deposit": "4",
+  "key_money": "5",
+  "period": "6",
+  "landlord_name": "e",
+  "tenant_name": "t",
+  "created_at": "2025-06-08T01:03:35.224461",
+  "file_path": "contracts\\rental\\rental_contract_20250608_010335.txt",
+  "contract_type": "rental"
+}
