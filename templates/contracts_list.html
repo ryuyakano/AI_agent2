@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}契約書一覧 - ドキュメント管理AI Agent{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>📚 契約書一覧</h2>
+            <div>
+                <a href="/search" class="btn btn-outline-primary">🔍 検索</a>
+                <a href="/rental" class="btn btn-primary">🏠 賃貸契約書作成</a>
+                <a href="/service" class="btn btn-success">📋 業務委託契約書作成</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if contracts %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>生成された契約書 ({{ contracts|length }}件)</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>種類</th>
+                                <th>作成日時</th>
+                                <th>詳細情報</th>
+                                <th>ファイル名</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for contract in contracts %}
+                            <tr>
+                                <td>
+                                    {% if contract.type == 'rental' %}
+                                        <span class="badge bg-primary">🏠 賃貸契約書</span>
+                                    {% else %}
+                                        <span class="badge bg-success">📋 業務委託契約書</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ contract.metadata.created_at[:19].replace('T', ' ') }}</td>
+                                <td>
+                                    {% if contract.type == 'rental' %}
+                                        <strong>物件:</strong> {{ contract.metadata.property_name }}<br>
+                                        <strong>賃料:</strong> {{ contract.metadata.rent }}円<br>
+                                        <strong>借主:</strong> {{ contract.metadata.tenant_name }}
+                                    {% else %}
+                                        <strong>業務:</strong> {{ contract.metadata.service_description[:50] }}...<br>
+                                        <strong>報酬:</strong> {{ contract.metadata.compensation }}<br>
+                                        <strong>受託者:</strong> {{ contract.metadata.contractor_name }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <code>{{ contract.file_path.split('/')[-1] }}</code>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" 
+                                                onclick="viewContract('{{ contract.file_path.split('/')[-1] }}')"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#contractModal">
+                                            👁️ 表示
+                                        </button>
+                                        <button class="btn btn-outline-secondary" 
+                                                onclick="downloadContract('{{ contract.file_path }}')">
+                                            📥 DL
+                                        </button>
+                                        <button class="btn btn-outline-success btn-sm" 
+                                                onclick="evaluateContract('{{ contract.file_path.split('/')[-1] }}')">
+                                            🤖 AI評価
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <h4>📭 まだ契約書が作成されていません</h4>
+            <p>以下のボタンから契約書を作成してください。</p>
+            <div class="mt-3">
+                <a href="/rental" class="btn btn-primary me-2">🏠 賃貸契約書を作成</a>
+                <a href="/service" class="btn btn-success">📋 業務委託契約書を作成</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- 契約書表示モーダル -->
+<div class="modal fade" id="contractModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="contractModalTitle">契約書内容</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="contractContent" class="contract-content">
+                    <!-- 契約書内容がここに読み込まれます -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                <button type="button" class="btn btn-primary" onclick="copyModalContract()">📋 コピー</button>
+                <button type="button" class="btn btn-outline-primary" onclick="printModalContract()">🖨️ 印刷</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentContractContent = '';
+
+async function viewContract(fileName) {
+    try {
+        const response = await fetch(`/api/contracts/${fileName}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            currentContractContent = data.content;
+            document.getElementById('contractContent').innerText = data.content;
+            document.getElementById('contractModalTitle').innerText = `契約書内容 - ${fileName}`;
+        } else {
+            document.getElementById('contractContent').innerHTML = 
+                `<div class="alert alert-danger">契約書の読み込みに失敗しました。</div>`;
+        }
+    } catch (error) {
+        document.getElementById('contractContent').innerHTML = 
+            `<div class="alert alert-danger">エラー: ${error.message}</div>`;
+    }
+}
+
+function downloadContract(filePath) {
+    // ファイルダウンロード機能（実装する場合）
+    alert('ダウンロード機能は現在開発中です。\nファイルパス: ' + filePath);
+}
+
+function copyModalContract() {
+    navigator.clipboard.writeText(currentContractContent).then(function() {
+        // 成功通知
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '✅ コピー完了';
+        btn.className = 'btn btn-success';
+        
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.className = 'btn btn-primary';
+        }, 2000);
+    }).catch(function(err) {
+        alert('コピーに失敗しました: ' + err);
+    });
+}
+
+function printModalContract() {
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>契約書</title>
+            <style>
+                body { font-family: 'MS Gothic', monospace; font-size: 12px; line-height: 1.5; }
+                .contract-content { white-space: pre-line; }
+            </style>
+        </head>
+        <body>
+            <div class="contract-content">${currentContractContent}</div>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+}
+
+// AI評価機能
+function evaluateContract(fileName) {
+    if (confirm(`契約書「${fileName}」のAI品質評価を実行しますか？\n\n評価には数十秒かかる場合があります。`)) {
+        // 評価ページに移動して該当ファイルを選択状態にする
+        window.location.href = `/evaluate?file=${fileName}`;
+    }
+}
+
+// フィルター機能（将来的に実装）
+function filterContracts(type) {
+    // 契約書タイプでフィルタリング
+    console.log('Filtering by:', type);
+}
+</script>
+{% endblock %}

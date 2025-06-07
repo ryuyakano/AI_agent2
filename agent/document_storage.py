@@ -2,7 +2,7 @@
 import os
 import json
 from datetime import datetime
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from pathlib import Path
 
 class DocumentStorage:
@@ -67,3 +67,43 @@ class DocumentStorage:
                     })
                     
         return sorted(contracts, key=lambda x: x['metadata']['created_at'], reverse=True)
+    
+    def search_contracts(self, query: str = None, contract_type: str = None, date_from: str = None, date_to: str = None) -> list:
+        """契約書を検索する"""
+        contracts = self.list_contracts(contract_type)
+        
+        if not query and not date_from and not date_to:
+            return contracts
+            
+        filtered_contracts = []
+        
+        for contract in contracts:
+            # 日付フィルタリング
+            if date_from or date_to:
+                contract_date = contract['metadata']['created_at'][:10]  # YYYY-MM-DD形式
+                if date_from and contract_date < date_from:
+                    continue
+                if date_to and contract_date > date_to:
+                    continue
+            
+            # キーワード検索
+            if query:
+                query_lower = query.lower()
+                # ファイル内容を検索
+                try:
+                    with open(contract['file_path'], 'r', encoding='utf-8') as f:
+                        content = f.read().lower()
+                    
+                    # メタデータも検索対象に含める
+                    metadata_text = json.dumps(contract['metadata'], ensure_ascii=False).lower()
+                    
+                    if query_lower in content or query_lower in metadata_text:
+                        filtered_contracts.append(contract)
+                        
+                except (IOError, UnicodeDecodeError):
+                    # ファイル読み込みエラーの場合はスキップ
+                    continue
+            else:
+                filtered_contracts.append(contract)
+                
+        return filtered_contracts

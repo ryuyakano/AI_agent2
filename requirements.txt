@@ -5,3 +5,7 @@ click
 pydantic
 asyncio
 aiofiles
+fastapi
+uvicorn
+jinja2
+python-multipart

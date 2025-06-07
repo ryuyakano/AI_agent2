@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}ホーム - ドキュメント管理AI Agent{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="jumbotron bg-light p-5 rounded mb-4">
+            <h1 class="display-4">ドキュメント管理AI Agent</h1>
+            <p class="lead">OpenAI Agent SDKとLangFuseを活用した日本語契約書の自動生成・管理システム</p>
+            <hr class="my-4">
+            <p>賃貸契約書と業務委託契約書を簡単に作成し、管理できます。</p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">🏠 賃貸契約書</h5>
+                <p class="card-text">
+                    物件情報、賃料、貸主・借主情報を入力するだけで、
+                    日本法に準拠した賃貸契約書を自動生成します。
+                </p>
+                <div class="mb-3">
+                    <small class="text-muted">
+                        <strong>含まれる項目:</strong><br>
+                        • 物件詳細情報<br>
+                        • 賃料・敷金・礼金<br>
+                        • 契約期間<br>
+                        • 法的条項
+                    </small>
+                </div>
+                <a href="/rental" class="btn btn-primary">賃貸契約書を作成</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">📋 業務委託契約書</h5>
+                <p class="card-text">
+                    業務内容、報酬、委託期間などを指定して、
+                    法的に有効な業務委託契約書を作成します。
+                </p>
+                <div class="mb-3">
+                    <small class="text-muted">
+                        <strong>含まれる項目:</strong><br>
+                        • 業務内容・期間<br>
+                        • 報酬・支払条件<br>
+                        • 委託者・受託者情報<br>
+                        • 契約条項
+                    </small>
+                </div>
+                <a href="/service" class="btn btn-success">業務委託契約書を作成</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">📚 機能紹介</h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6>🤖 AI自動生成</h6>
+                        <p class="small">OpenAI GPTを使用した高品質な契約書生成</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>📊 トレース管理</h6>
+                        <p class="small">LangFuseによるリアルタイム監視・ログ管理</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>💾 自動保存</h6>
+                        <p class="small">メタデータ付きローカルファイル管理</p>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a href="/contracts" class="btn btn-outline-primary">📚 契約書一覧を確認</a>
+                    <a href="/search" class="btn btn-outline-secondary">🔍 契約書を検索</a>
+                    <a href="/evaluate" class="btn btn-outline-success">🤖 AI品質評価</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <h6>📋 REST API も利用可能</h6>
+            <p class="mb-0">
+                プログラムから直接利用したい場合は、REST APIエンドポイントをご利用ください。<br>
+                <code>POST /api/rental</code> | <code>POST /api/service</code> | <code>GET /api/contracts</code>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

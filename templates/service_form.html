@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}業務委託契約書作成 - ドキュメント管理AI Agent{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>📋 業務委託契約書作成</h2>
+        <p class="text-muted">以下の情報を入力して、業務委託契約書を自動生成します。</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <form method="post" action="/service">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>💼 委託業務情報</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="service_description" class="form-label">業務内容</label>
+                        <textarea class="form-control" id="service_description" name="service_description" rows="3" required
+                                  placeholder="例: Webアプリケーションの開発・保守業務"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="period" class="form-label">委託期間</label>
+                            <select class="form-select" id="period" name="period">
+                                <option value="3ヶ月">3ヶ月</option>
+                                <option value="6ヶ月" selected>6ヶ月</option>
+                                <option value="1年">1年</option>
+                                <option value="2年">2年</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="compensation" class="form-label">報酬</label>
+                            <input type="text" class="form-control" id="compensation" name="compensation" required
+                                   placeholder="例: 月額500,000円">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="payment_terms" class="form-label">支払条件</label>
+                        <select class="form-select" id="payment_terms" name="payment_terms">
+                            <option value="月末締め翌月末支払い" selected>月末締め翌月末支払い</option>
+                            <option value="月末締め翌月15日支払い">月末締め翌月15日支払い</option>
+                            <option value="15日締め月末支払い">15日締め月末支払い</option>
+                            <option value="完了時一括支払い">完了時一括支払い</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>🏢 契約者情報</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="client_company" class="form-label">委託者会社名</label>
+                            <input type="text" class="form-control" id="client_company" name="client_company" required
+                                   placeholder="例: 株式会社サンプル">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="client_representative" class="form-label">委託者代表者名</label>
+                            <input type="text" class="form-control" id="client_representative" name="client_representative" required
+                                   placeholder="例: 山田一郎">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="contractor_name" class="form-label">受託者名</label>
+                        <input type="text" class="form-control" id="contractor_name" name="contractor_name" required
+                               placeholder="例: 鈴木二郎（個人）または 株式会社〇〇">
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="/" class="btn btn-secondary me-md-2">キャンセル</a>
+                <button type="submit" class="btn btn-success">
+                    🤖 契約書を生成
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6>📋 注意事項</h6>
+            </div>
+            <div class="card-body">
+                <ul class="small">
+                    <li>生成される契約書は日本の法律に準拠した内容となります</li>
+                    <li>業務委託契約の法的要件を満たした内容となります</li>
+                    <li>実際の使用前に法務専門家による確認をお勧めします</li>
+                    <li>契約書は自動的にローカルに保存されます</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6>🔍 含まれる内容</h6>
+            </div>
+            <div class="card-body">
+                <ul class="small">
+                    <li>委託業務の詳細内容</li>
+                    <li>業務期間と納期</li>
+                    <li>報酬と支払条件</li>
+                    <li>委託者・受託者の責任</li>
+                    <li>知的財産権の扱い</li>
+                    <li>秘密保持に関する条項</li>
+                    <li>契約解除条件</li>
+                    <li>その他法的条項</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6>💡 業務内容の例</h6>
+            </div>
+            <div class="card-body">
+                <ul class="small">
+                    <li>Webアプリケーション開発</li>
+                    <li>システム保守・運用</li>
+                    <li>マーケティング支援</li>
+                    <li>デザイン制作</li>
+                    <li>コンサルティング業務</li>
+                    <li>翻訳・ライティング</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// フォームバリデーション
+document.querySelector('form').addEventListener('submit', function(e) {
+    const requiredFields = this.querySelectorAll('[required]');
+    let isValid = true;
+    
+    requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+            isValid = false;
+            field.classList.add('is-invalid');
+        } else {
+            field.classList.remove('is-invalid');
+        }
+    });
+    
+    if (!isValid) {
+        e.preventDefault();
+        alert('すべての必須項目を入力してください。');
+    }
+});
+</script>
+{% endblock %}

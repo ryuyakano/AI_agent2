@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}賃貸契約書作成 - ドキュメント管理AI Agent{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>🏠 賃貸契約書作成</h2>
+        <p class="text-muted">以下の情報を入力して、賃貸契約書を自動生成します。</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <form method="post" action="/rental">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>🏢 物件情報</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="property_name" class="form-label">物件名</label>
+                            <input type="text" class="form-control" id="property_name" name="property_name" required
+                                   placeholder="例: サンプルマンション101">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="address" class="form-label">所在地</label>
+                            <input type="text" class="form-control" id="address" name="address" required
+                                   placeholder="例: 東京都渋谷区〇〇1-2-3">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="rent" class="form-label">賃料（円/月）</label>
+                            <input type="text" class="form-control" id="rent" name="rent" required
+                                   placeholder="例: 80,000">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="deposit" class="form-label">敷金（円）</label>
+                            <input type="text" class="form-control" id="deposit" name="deposit" required
+                                   placeholder="例: 160,000">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="key_money" class="form-label">礼金（円）</label>
+                            <input type="text" class="form-control" id="key_money" name="key_money" required
+                                   placeholder="例: 80,000">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="period" class="form-label">契約期間</label>
+                        <select class="form-select" id="period" name="period">
+                            <option value="1年">1年</option>
+                            <option value="2年" selected>2年</option>
+                            <option value="3年">3年</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>👥 契約者情報</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="landlord_name" class="form-label">貸主氏名</label>
+                            <input type="text" class="form-control" id="landlord_name" name="landlord_name" required
+                                   placeholder="例: 田中太郎">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="tenant_name" class="form-label">借主氏名</label>
+                            <input type="text" class="form-control" id="tenant_name" name="tenant_name" required
+                                   placeholder="例: 佐藤花子">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="/" class="btn btn-secondary me-md-2">キャンセル</a>
+                <button type="submit" class="btn btn-primary">
+                    🤖 契約書を生成
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6>📋 注意事項</h6>
+            </div>
+            <div class="card-body">
+                <ul class="small">
+                    <li>生成される契約書は日本の法律に準拠した内容となります</li>
+                    <li>実際の使用前に法務専門家による確認をお勧めします</li>
+                    <li>契約書は自動的にローカルに保存されます</li>
+                    <li>LangFuseで生成プロセスがトレースされます</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6>🔍 含まれる内容</h6>
+            </div>
+            <div class="card-body">
+                <ul class="small">
+                    <li>契約当事者の情報</li>
+                    <li>物件の詳細情報</li>
+                    <li>賃料・敷金・礼金の設定</li>
+                    <li>契約期間と更新条件</li>
+                    <li>使用目的と制限事項</li>
+                    <li>解約に関する条項</li>
+                    <li>その他法的条項</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// フォームバリデーション
+document.querySelector('form').addEventListener('submit', function(e) {
+    const requiredFields = this.querySelectorAll('[required]');
+    let isValid = true;
+    
+    requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+            isValid = false;
+            field.classList.add('is-invalid');
+        } else {
+            field.classList.remove('is-invalid');
+        }
+    });
+    
+    if (!isValid) {
+        e.preventDefault();
+        alert('すべての必須項目を入力してください。');
+    }
+});
+</script>
+{% endblock %}

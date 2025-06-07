@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}契約書生成結果 - ドキュメント管理AI Agent{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        {% if success %}
+            <div class="alert alert-success">
+                <h4>✅ {{ contract_type }}が正常に生成されました！</h4>
+                <p class="mb-0">契約書は <code>{{ file_path }}</code> に保存されました。</p>
+            </div>
+        {% else %}
+            <div class="alert alert-danger">
+                <h4>❌ 契約書生成エラー</h4>
+                <p class="mb-0">{{ error }}</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if success %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5>📄 生成された契約書</h5>
+                <div>
+                    <button class="btn btn-sm btn-outline-primary" onclick="copyContract()">📋 コピー</button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="printContract()">🖨️ 印刷</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="contract-content" id="contract-content">{{ contract_content }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+            <a href="/" class="btn btn-primary">🏠 ホームに戻る</a>
+            <a href="/contracts" class="btn btn-outline-primary">📚 契約書一覧を確認</a>
+            {% if contract_type == "賃貸契約書" %}
+                <a href="/rental" class="btn btn-outline-success">🏠 新しい賃貸契約書を作成</a>
+            {% else %}
+                <a href="/service" class="btn btn-outline-success">📋 新しい業務委託契約書を作成</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if not success %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+            <a href="/" class="btn btn-primary">🏠 ホームに戻る</a>
+            <button class="btn btn-outline-secondary" onclick="history.back()">⬅️ 前のページに戻る</button>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copyContract() {
+    const contractText = document.getElementById('contract-content').innerText;
+    navigator.clipboard.writeText(contractText).then(function() {
+        // 成功通知
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '✅ コピー完了';
+        btn.className = 'btn btn-sm btn-success';
+        
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.className = 'btn btn-sm btn-outline-primary';
+        }, 2000);
+    }).catch(function(err) {
+        alert('コピーに失敗しました: ' + err);
+    });
+}
+
+function printContract() {
+    // 印刷用のウィンドウを開く
+    const contractContent = document.getElementById('contract-content').innerHTML;
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>{{ contract_type }}</title>
+            <style>
+                body { font-family: 'MS Gothic', monospace; font-size: 12px; line-height: 1.5; }
+                .contract-content { white-space: pre-line; }
+            </style>
+        </head>
+        <body>
+            <div class="contract-content">${contractContent}</div>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+}
+
+// LangFuseトレース情報を表示する場合
+{% if trace_url %}
+console.log('LangFuse Trace URL: {{ trace_url }}');
+{% endif %}
+</script>
+{% endblock %}

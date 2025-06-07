@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}契約書検索 - ドキュメント管理AI Agent{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>🔍 契約書検索</h2>
+            <div>
+                <a href="/contracts" class="btn btn-outline-primary">📚 一覧表示</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <form method="post" action="/search">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>🔍 検索条件</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="query" class="form-label">キーワード検索</label>
+                        <input type="text" class="form-control" id="query" name="query" 
+                               placeholder="例: 物件名、会社名、契約条件など...">
+                        <div class="form-text">契約書の内容とメタデータから検索します</div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="contract_type" class="form-label">契約書タイプ</label>
+                            <select class="form-select" id="contract_type" name="contract_type">
+                                <option value="all">すべて</option>
+                                <option value="rental">🏠 賃貸契約書</option>
+                                <option value="service">📋 業務委託契約書</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label for="date_from" class="form-label">作成日（開始）</label>
+                            <input type="date" class="form-control" id="date_from" name="date_from">
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label for="date_to" class="form-label">作成日（終了）</label>
+                            <input type="date" class="form-control" id="date_to" name="date_to">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="/contracts" class="btn btn-secondary me-md-2">キャンセル</a>
+                <button type="submit" class="btn btn-primary">
+                    🔍 検索実行
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6>💡 検索のヒント</h6>
+            </div>
+            <div class="card-body">
+                <ul class="small">
+                    <li><strong>キーワード検索:</strong> 契約書の内容全体から検索</li>
+                    <li><strong>会社名・人名:</strong> 契約者の名前で検索可能</li>
+                    <li><strong>金額:</strong> 賃料や報酬の金額で検索可能</li>
+                    <li><strong>住所:</strong> 物件の住所で検索可能</li>
+                    <li><strong>業務内容:</strong> 委託業務の説明で検索可能</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6>📊 検索例</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-sm btn-outline-primary" onclick="setExample('東京都')">
+                        東京都の物件
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" onclick="setExample('月額')">
+                        月額を含む契約
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" onclick="setExample('Web')">
+                        Web関連業務
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6>🎯 フィルター機能</h6>
+            </div>
+            <div class="card-body">
+                <ul class="small">
+                    <li><strong>契約書タイプ:</strong> 賃貸・業務委託で絞り込み</li>
+                    <li><strong>作成日範囲:</strong> 期間を指定して検索</li>
+                    <li><strong>組み合わせ:</strong> 複数条件での絞り込み</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function setExample(keyword) {
+    document.getElementById('query').value = keyword;
+}
+
+// 検索フォームのバリデーション
+document.querySelector('form').addEventListener('submit', function(e) {
+    const query = document.getElementById('query').value.trim();
+    const contractType = document.getElementById('contract_type').value;
+    const dateFrom = document.getElementById('date_from').value;
+    const dateTo = document.getElementById('date_to').value;
+    
+    // 検索条件が何も指定されていない場合の警告
+    if (!query && contractType === 'all' && !dateFrom && !dateTo) {
+        if (!confirm('検索条件が指定されていません。すべての契約書を表示しますか？')) {
+            e.preventDefault();
+            return;
+        }
+    }
+    
+    // 日付の妥当性チェック
+    if (dateFrom && dateTo && dateFrom > dateTo) {
+        alert('開始日は終了日より前の日付を指定してください。');
+        e.preventDefault();
+        return;
+    }
+});
+
+// リアルタイム検索の実装（オプション）
+let searchTimeout;
+document.getElementById('query').addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    const query = this.value.trim();
+    
+    if (query.length >= 2) {
+        searchTimeout = setTimeout(() => {
+            // ここでリアルタイム検索のAPIを呼び出すことも可能
+            console.log('検索中:', query);
+        }, 500);
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+
+{% block title %}契約書品質評価 - ドキュメント管理AI Agent{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>🤖 LLM-as-a-Judge 契約書品質評価</h2>
+            <div>
+                <a href="/contracts" class="btn btn-outline-primary">📚 一覧表示</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        {% if contracts %}
+        <form method="post" action="/evaluate">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>📋 評価対象契約書の選択</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="file_name" class="form-label">契約書を選択してください</label>
+                        <select class="form-select" id="file_name" name="file_name" required>
+                            <option value="">-- 契約書を選択 --</option>
+                            {% for contract in contracts %}
+                            <option value="{{ contract.file_path.split('/')[-1] }}" 
+                                    data-type="{{ contract.type }}"
+                                    data-created="{{ contract.metadata.created_at[:19].replace('T', ' ') }}">
+                                {% if contract.type == 'rental' %}
+                                    🏠 {{ contract.metadata.property_name }} ({{ contract.metadata.created_at[:10] }})
+                                {% else %}
+                                    📋 {{ contract.metadata.service_description[:30] }}... ({{ contract.metadata.created_at[:10] }})
+                                {% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">評価したい契約書を選択してください</div>
+                    </div>
+                    
+                    <div class="selected-contract-info" id="contractInfo" style="display: none;">
+                        <div class="alert alert-info">
+                            <h6>📄 選択された契約書</h6>
+                            <div id="contractDetails"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="/contracts" class="btn btn-secondary me-md-2">キャンセル</a>
+                <button type="submit" class="btn btn-primary">
+                    🤖 AI評価を実行
+                </button>
+            </div>
+        </form>
+        {% else %}
+        <div class="alert alert-warning text-center">
+            <h4>📭 評価可能な契約書がありません</h4>
+            <p>契約書を作成してから評価を実行してください。</p>
+            <div class="mt-3">
+                <a href="/rental" class="btn btn-primary me-2">🏠 賃貸契約書を作成</a>
+                <a href="/service" class="btn btn-success">📋 業務委託契約書を作成</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6>🤖 LLM-as-a-Judge とは</h6>
+            </div>
+            <div class="card-body">
+                <p class="small">
+                    最新のAI技術を使用して、契約書の品質を客観的に評価するシステムです。
+                    OpenAIのGPT-4を使用して、法的な観点から契約書を分析します。
+                </p>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6>📊 評価項目</h6>
+            </div>
+            <div class="card-body">
+                <ul class="small">
+                    <li><strong>法的適合性:</strong> 日本法への準拠度</li>
+                    <li><strong>情報完整性:</strong> 必要条項の網羅性</li>
+                    <li><strong>明瞭性:</strong> 条文の理解しやすさ</li>
+                    <li><strong>リスク管理:</strong> 双方のリスク配慮</li>
+                    <li><strong>実用性:</strong> 実際の運用における有効性</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6>🔍 評価結果の詳細</h6>
+            </div>
+            <div class="card-body">
+                <ul class="small">
+                    <li><strong>総合スコア:</strong> 1-100点での評価</li>
+                    <li><strong>項目別スコア:</strong> 各評価項目の詳細点数</li>
+                    <li><strong>強みと弱点:</strong> 契約書の良い点・改善点</li>
+                    <li><strong>改善提案:</strong> 具体的な改善方法</li>
+                    <li><strong>法的懸念点:</strong> 注意すべき法的問題</li>
+                    <li><strong>総合評価:</strong> A-F段階での格付け</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6>📈 LangFuse トレーシング</h6>
+            </div>
+            <div class="card-body">
+                <p class="small">
+                    すべての評価プロセスはLangFuseで監視・記録されます。
+                    評価結果と共にトレースIDが提供され、詳細な分析が可能です。
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 一括評価セクション -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>🚀 一括評価機能</h5>
+            </div>
+            <div class="card-body">
+                <p>複数の契約書を一度に評価することも可能です。</p>
+                <div class="row">
+                    <div class="col-md-6">
+                        <button class="btn btn-outline-primary w-100" onclick="batchEvaluate('all')">
+                            📊 すべての契約書を一括評価
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-secondary w-100" onclick="batchEvaluate('rental')">
+                            🏠 賃貸契約書のみ
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-success w-100" onclick="batchEvaluate('service')">
+                            📋 業務委託契約書のみ
+                        </button>
+                    </div>
+                </div>
+                <div id="batchResults" class="mt-3" style="display: none;">
+                    <!-- 一括評価結果がここに表示される -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// URLパラメータから事前選択ファイルを設定
+document.addEventListener('DOMContentLoaded', function() {
+    {% if preselected_file %}
+    const preselectedFile = '{{ preselected_file }}';
+    const selectElement = document.getElementById('file_name');
+    
+    // 該当するオプションを選択
+    for (let option of selectElement.options) {
+        if (option.value === preselectedFile) {
+            option.selected = true;
+            // 詳細情報も表示
+            selectElement.dispatchEvent(new Event('change'));
+            break;
+        }
+    }
+    {% endif %}
+});
+// 契約書選択時の詳細表示
+document.getElementById('file_name').addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    const contractInfo = document.getElementById('contractInfo');
+    const contractDetails = document.getElementById('contractDetails');
+    
+    if (selectedOption.value) {
+        const type = selectedOption.getAttribute('data-type');
+        const created = selectedOption.getAttribute('data-created');
+        const fileName = selectedOption.value;
+        
+        contractDetails.innerHTML = `
+            <p><strong>ファイル名:</strong> <code>${fileName}</code></p>
+            <p><strong>種類:</strong> ${type === 'rental' ? '🏠 賃貸契約書' : '📋 業務委託契約書'}</p>
+            <p><strong>作成日時:</strong> ${created}</p>
+            <p><strong>選択内容:</strong> ${selectedOption.text}</p>
+        `;
+        contractInfo.style.display = 'block';
+    } else {
+        contractInfo.style.display = 'none';
+    }
+});
+
+// 一括評価機能
+async function batchEvaluate(contractType) {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '⏳ 評価中...';
+    btn.disabled = true;
+    
+    try {
+        const params = contractType === 'all' ? '' : `?contract_type=${contractType}`;
+        const response = await fetch(`/api/batch-evaluate${params}`, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            displayBatchResults(data.evaluations);
+        } else {
+            alert('一括評価中にエラーが発生しました: ' + data.message);
+        }
+        
+    } catch (error) {
+        alert('エラー: ' + error.message);
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+
+function displayBatchResults(evaluations) {
+    const resultsDiv = document.getElementById('batchResults');
+    
+    let html = '<div class="alert alert-success"><h6>🎉 一括評価が完了しました</h6></div>';
+    html += '<div class="table-responsive"><table class="table table-sm">';
+    html += '<thead><tr><th>契約書</th><th>総合スコア</th><th>評価</th><th>トレースID</th></tr></thead><tbody>';
+    
+    evaluations.forEach(evaluation => {
+        if (evaluation.success) {
+            const fileName = evaluation.file_path.split('/').pop();
+            const score = evaluation.evaluation.overall_score;
+            const grade = evaluation.evaluation.grade;
+            const traceId = evaluation.trace_id;
+            
+            html += `<tr>
+                <td><code>${fileName}</code></td>
+                <td><span class="badge ${getScoreBadgeClass(score)}">${score}点</span></td>
+                <td><span class="badge ${getGradeBadgeClass(grade)}">${grade}</span></td>
+                <td><small><code>${traceId}</code></small></td>
+            </tr>`;
+        } else {
+            const fileName = evaluation.file_path.split('/').pop();
+            html += `<tr>
+                <td><code>${fileName}</code></td>
+                <td><span class="badge bg-danger">エラー</span></td>
+                <td>-</td>
+                <td><small>${evaluation.error}</small></td>
+            </tr>`;
+        }
+    });
+    
+    html += '</tbody></table></div>';
+    resultsDiv.innerHTML = html;
+    resultsDiv.style.display = 'block';
+}
+
+function getScoreBadgeClass(score) {
+    if (score >= 80) return 'bg-success';
+    if (score >= 60) return 'bg-warning';
+    return 'bg-danger';
+}
+
+function getGradeBadgeClass(grade) {
+    if (grade === 'A') return 'bg-success';
+    if (grade === 'B') return 'bg-primary';
+    if (grade === 'C') return 'bg-warning';
+    return 'bg-danger';
+}
+
+// フォームバリデーション
+document.querySelector('form').addEventListener('submit', function(e) {
+    const fileName = document.getElementById('file_name').value;
+    
+    if (!fileName) {
+        e.preventDefault();
+        alert('評価する契約書を選択してください。');
+        return;
+    }
+    
+    // 評価実行確認
+    if (!confirm('選択した契約書のAI評価を実行しますか？\\n\\n評価には数十秒かかる場合があります。')) {
+        e.preventDefault();
+    }
+});
+</script>
+{% endblock %}

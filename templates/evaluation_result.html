@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+
+{% block title %}評価結果 - ドキュメント管理AI Agent{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        {% if success %}
+            <div class="alert alert-success">
+                <h4>🤖 AI評価が完了しました！</h4>
+                <p class="mb-0">契約書「<code>{{ file_name }}</code>」の品質評価結果</p>
+                {% if trace_id %}
+                <small>LangFuse Trace ID: <code>{{ trace_id }}</code></small>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="alert alert-danger">
+                <h4>❌ 評価エラー</h4>
+                <p class="mb-0">{{ error }}</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if success and evaluation %}
+<div class="row">
+    <!-- 総合評価カード -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5>📊 総合評価</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <h1 class="display-1 text-{{ evaluation.overall_score >= 80 and 'success' or (evaluation.overall_score >= 60 and 'warning' or 'danger') }}">
+                        {{ evaluation.overall_score }}
+                    </h1>
+                    <p class="lead">総合スコア（100点満点）</p>
+                </div>
+                <div class="mb-3">
+                    <span class="badge fs-3 bg-{{ evaluation.grade == 'A' and 'success' or (evaluation.grade == 'B' and 'primary' or (evaluation.grade == 'C' and 'warning' or 'danger')) }}">
+                        評価: {{ evaluation.grade }}
+                    </span>
+                </div>
+                <p class="text-muted">{{ evaluation.summary }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 項目別スコア -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5>📈 項目別スコア</h5>
+            </div>
+            <div class="card-body">
+                {% for key, value in evaluation.scores.items() %}
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>
+                            {% if key == 'legal_compliance' %}📜 法的適合性
+                            {% elif key == 'completeness' %}📋 完整性
+                            {% elif key == 'clarity' %}💡 明瞭性
+                            {% elif key == 'risk_management' %}⚖️ リスク管理
+                            {% elif key == 'practicality' %}🔧 実用性
+                            {% else %}{{ key }}
+                            {% endif %}
+                        </span>
+                        <span class="fw-bold">{{ value }}/10</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-{{ value >= 8 and 'success' or (value >= 6 and 'warning' or 'danger') }}" 
+                             style="width: {{ value * 10 }}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- 強みと弱点 -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <h5>💪 強み</h5>
+            </div>
+            <div class="card-body">
+                {% if evaluation.strengths %}
+                <ul class="list-unstyled">
+                    {% for strength in evaluation.strengths %}
+                    <li class="mb-2">
+                        <i class="text-success">✅</i> {{ strength }}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted">特記すべき強みは見つかりませんでした。</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-warning text-dark">
+                <h5>⚠️ 弱点・改善点</h5>
+            </div>
+            <div class="card-body">
+                {% if evaluation.weaknesses %}
+                <ul class="list-unstyled">
+                    {% for weakness in evaluation.weaknesses %}
+                    <li class="mb-2">
+                        <i class="text-warning">⚠️</i> {{ weakness }}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted">特記すべき弱点は見つかりませんでした。</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- 改善提案 -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-info text-white">
+                <h5>💡 改善提案</h5>
+            </div>
+            <div class="card-body">
+                {% if evaluation.recommendations %}
+                <ol>
+                    {% for recommendation in evaluation.recommendations %}
+                    <li class="mb-2">{{ recommendation }}</li>
+                    {% endfor %}
+                </ol>
+                {% else %}
+                <p class="text-muted">追加の改善提案はありません。</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- 法的懸念点 -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-danger text-white">
+                <h5>⚖️ 法的懸念点</h5>
+            </div>
+            <div class="card-body">
+                {% if evaluation.legal_issues %}
+                <ul class="list-unstyled">
+                    {% for issue in evaluation.legal_issues %}
+                    <li class="mb-2">
+                        <i class="text-danger">⚖️</i> {{ issue }}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="alert alert-success">
+                    <i class="text-success">✅</i> 重大な法的懸念点は見つかりませんでした。
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- LangFuse トレース情報 -->
+{% if trace_id %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>📊 LangFuse トレース情報</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>トレースID:</strong> <code>{{ trace_id }}</code></p>
+                <p class="text-muted">
+                    この評価プロセスはLangFuseで監視・記録されています。
+                    詳細な分析やデバッグ情報はLangFuseダッシュボードで確認できます。
+                </p>
+                <a href="http://localhost:3000" target="_blank" class="btn btn-outline-primary">
+                    🔗 LangFuseダッシュボードを開く
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endif %}
+
+<!-- アクションボタン -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+            <a href="/evaluate" class="btn btn-primary">🤖 別の契約書を評価</a>
+            <a href="/contracts" class="btn btn-outline-primary">📚 契約書一覧に戻る</a>
+            <a href="/" class="btn btn-outline-secondary">🏠 ホームに戻る</a>
+            {% if success and evaluation %}
+            <button class="btn btn-outline-success" onclick="exportEvaluation()">📥 評価結果をエクスポート</button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if not success %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6>🔧 トラブルシューティング</h6>
+            </div>
+            <div class="card-body">
+                <p>評価に失敗した場合の対処法：</p>
+                <ul>
+                    <li>契約書ファイルが正常に保存されているか確認</li>
+                    <li>OpenAI APIキーが正しく設定されているか確認</li>
+                    <li>LangFuseサービスが動作しているか確認</li>
+                    <li>ネットワーク接続を確認</li>
+                </ul>
+                <p>問題が続く場合は、しばらく時間をおいて再試行してください。</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+{% if success and evaluation %}
+// 評価結果エクスポート機能
+function exportEvaluation() {
+    const evaluation = {{ evaluation | tojson | safe }};
+    const fileName = '{{ file_name }}';
+    const traceId = '{{ trace_id }}';
+    
+    const exportData = {
+        file_name: fileName,
+        trace_id: traceId,
+        evaluation_date: new Date().toISOString(),
+        evaluation: evaluation
+    };
+    
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+    
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(dataBlob);
+    link.download = `evaluation_${fileName}_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.json`;
+    link.click();
+}
+
+// スコア可視化アニメーション
+document.addEventListener('DOMContentLoaded', function() {
+    const progressBars = document.querySelectorAll('.progress-bar');
+    progressBars.forEach(bar => {
+        const width = bar.style.width;
+        bar.style.width = '0%';
+        setTimeout(() => {
+            bar.style.transition = 'width 1s ease-in-out';
+            bar.style.width = width;
+        }, 500);
+    });
+});
+
+// 総合スコアの数値アニメーション
+const scoreElement = document.querySelector('.display-1');
+if (scoreElement) {
+    const finalScore = {{ evaluation.overall_score }};
+    let currentScore = 0;
+    const increment = finalScore / 30;
+    
+    const timer = setInterval(() => {
+        currentScore += increment;
+        if (currentScore >= finalScore) {
+            currentScore = finalScore;
+            clearInterval(timer);
+        }
+        scoreElement.textContent = Math.round(currentScore);
+    }, 50);
+}
+
+console.log('LangFuse Trace ID: {{ trace_id }}');
+{% endif %}
+</script>
+{% endblock %}
