@@ -1,67 +1,35 @@
 # ドキュメント管理AI Agent
 
-OpenAI Agent SDKとLangFuseを使った日本語契約書の自動生成・管理・評価システム
+OpenAI Agent SDKとLangFuseを使用した契約書生成・管理システムです。
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Python](https://img.shields.io/badge/python-3.8+-green.svg)
-![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4-orange.svg)
-![LangFuse](https://img.shields.io/badge/LangFuse-Tracing-purple.svg)
+## 機能
 
-## 主な機能
+- 📄 **賃貸契約書生成**: 物件情報から賃貸契約書を自動生成
+- 📋 **業務委託契約書生成**: 業務内容から業務委託契約書を自動生成
+- 🔍 **高度な検索機能**: 契約書の内容とメタデータから全文検索
+- 🤖 **AI品質評価**: LLM-as-a-Judgeによる契約書の品質評価
+- 🌐 **Web UI**: 直感的なブラウザベースのインターフェース
+- 🔌 **REST API**: プログラムからの直接利用
+- 💾 **ローカル保存**: 生成した契約書をローカルに保存・管理
+- 📊 **LangFuseトレース**: LLM呼び出しのログ収集とトレース管理
+- 🖥️ **CLI インターフェース**: 使いやすいコマンドライン操作
 
-### 契約書自動生成
-- **賃貸契約書**: 物件情報から法的に有効な賃貸契約書を自動生成
-- **業務委託契約書**: 業務内容から適切な委託契約書を作成
-- **法的準拠**: 日本の借地借家法・民法に準拠した内容
-
-### 高度な検索・管理機能
-- **全文検索**: 契約書の内容とメタデータから高速検索
-- **フィルタリング**: 契約種別・作成日での絞り込み
-- **一覧管理**: 作成した契約書の効率的な管理
-
-### AI品質評価 (LLM-as-a-Judge)
-- **専門的評価**: GPT-4による5項目での詳細品質評価
-- **総合判定**: 100点満点でのスコアリング + A-F段階評価
-- **改善提案**: 具体的な改善点と法的懸念点の指摘
-
-### マルチインターフェース
-- **Web UI**: 直感的なブラウザベースのインターフェース
-- **REST API**: プログラムからの直接利用が可能
-- **CLI**: コマンドラインでの効率的な操作
-
-### 完全なトレーサビリティ
-- **LangFuse統合**: すべてのAI処理を詳細監視・記録
-- **リアルタイム分析**: 生成プロセスと評価結果の可視化
-
-## 技術スタック
-
-- **AI**: OpenAI GPT-4o, Agent SDK
-- **監視**: LangFuse (Docker Compose)
-- **Web**: FastAPI, Jinja2, Bootstrap 5
-- **言語**: Python 3.8+
-- **ストレージ**: ローカルファイル + JSONメタデータ
-
-## セットアップ
+## 環境構築
 
 ### 1. 依存関係のインストール
 
 ```bash
-git clone <repository-url>
-cd AI_agent
 pip install -r requirements.txt
 ```
 
 ### 2. 環境変数の設定
 
-`.env`ファイルを作成して必要な環境変数を設定：
+`.env`ファイルを作成し、以下の環境変数を設定してください：
 
-```env
-# OpenAI API設定
+```
 OPENAI_API_KEY=your_openai_api_key_here
-
-# LangFuse設定（ローカルデプロイの場合）
-LANGFUSE_PUBLIC_KEY=pk-lf-1234567890abcdef
-LANGFUSE_SECRET_KEY=sk-lf-1234567890abcdef
+LANGFUSE_PUBLIC_KEY=pk-lf-xxx
+LANGFUSE_SECRET_KEY=sk-lf-xxx
 LANGFUSE_HOST=http://localhost:3000
 ```
 
@@ -71,8 +39,7 @@ LANGFUSE_HOST=http://localhost:3000
 docker-compose up -d
 ```
 
-数分後、http://localhost:3000 でLangFuseのダッシュボードにアクセスできます。
-初回起動時にPublic KeyとSecret Keyを設定して`.env`ファイルに記載してください。
+初回起動後、http://localhost:3000 でLangFuseの管理画面にアクセスし、アカウントを作成してAPIキーを取得してください。
 
 ## 使用方法
 
@@ -82,51 +49,61 @@ docker-compose up -d
 
 ```bash
 python web_app.py
-# または
-python start_web.py
 ```
 
-ブラウザで表示されるURLにアクセス（例: http://localhost:8081）
+ブラウザで表示されるURLにアクセスして以下の機能が利用できます：
+- 契約書作成フォーム
+- 契約書一覧・検索
+- AI品質評価
+- 一括処理
 
-#### 主な機能：
-- **契約書作成**: 直感的なフォームで簡単作成
-- **検索・閲覧**: 高度な検索機能とプレビュー
-- **AI評価**: ワンクリックでの品質評価
-- **一括処理**: 複数契約書の同時評価
+### CLI操作
 
-### CLI（高速操作）
+#### 賃貸契約書の生成
 
-#### 賃貸契約書の作成
 ```bash
 python ai_agent.py rental
 ```
 
-対話式で以下の情報を入力：
-- 物件名・住所
-- 賃料・敷金・礼金  
-- 契約期間
-- 貸主・借主情報
+対話形式で以下の情報を入力：
+- 物件名
+- 所在地
+- 賃料
+- 敷金
+- 礼金
+- 貸主氏名
+- 借主氏名
 
-#### 業務委託契約書の作成
+#### 業務委託契約書の生成
+
 ```bash
 python ai_agent.py service
 ```
 
-対話式で以下の情報を入力：
-- 業務内容・期間
-- 報酬・支払条件
-- 委託者・受託者情報
+対話形式で以下の情報を入力：
+- 業務内容
+- 報酬
+- 委託者会社名
+- 委託者代表者名
+- 受託者名
 
-#### 契約書の一覧表示
+#### 契約書一覧の表示
+
 ```bash
-# 全ての契約書
+# 全ての契約書を表示
 python ai_agent.py list
 
-# 賃貸契約書のみ
+# 賃貸契約書のみ表示
 python ai_agent.py list --type rental
 
-# 業務委託契約書のみ  
+# 業務委託契約書のみ表示
 python ai_agent.py list --type service
+```
+
+#### ヘルプの表示
+
+```bash
+python ai_agent.py --help
 ```
 
 ### REST API
@@ -148,8 +125,8 @@ response = requests.post("http://localhost:8081/api/rental", json={
     "tenant_name": "山田花子"
 })
 
-# 契約書一覧取得
-contracts = requests.get("http://localhost:8081/api/contracts").json()
+# 契約書検索
+contracts = requests.get("http://localhost:8081/api/search?query=東京都").json()
 
 # AI評価実行
 evaluation = requests.post("http://localhost:8081/api/evaluate", json={
@@ -157,46 +134,35 @@ evaluation = requests.post("http://localhost:8081/api/evaluate", json={
 }).json()
 ```
 
-## プロジェクト構造
+## ファイル構造
 
 ```
 AI_agent/
 ├── ai_agent.py              # メインCLIアプリケーション
-├── web_app.py               # FastAPI Webアプリケーション  
+├── web_app.py               # FastAPI Webアプリケーション
 ├── start_web.py             # Web起動用スクリプト
 ├── agent/
 │   ├── __init__.py
 │   ├── document_agent.py       # OpenAI SDK統合エージェント
 │   ├── contract_judge.py       # LLM-as-a-Judge評価システム
 │   ├── document_storage.py     # ファイル管理・検索機能
-│   ├── prompts.py             # 契約書生成プロンプト
+│   ├── prompts.py             # プロンプトテンプレート
 │   └── builder.py             # 従来のビルダー（後方互換）
 ├── templates/               # Webテンプレート
-│   ├── base.html              # ベーステンプレート
-│   ├── index.html             # ホームページ
-│   ├── rental_form.html       # 賃貸契約書作成フォーム
-│   ├── service_form.html      # 業務委託契約書作成フォーム
-│   ├── contracts_list.html    # 契約書一覧
-│   ├── search.html            # 検索ページ
-│   ├── search_results.html    # 検索結果
-│   ├── evaluation.html        # AI評価ページ
-│   ├── evaluation_result.html # 評価結果表示
-│   └── contract_result.html   # 契約書作成結果
-├── contracts/               # 生成された契約書保存先
-│   ├── rental/                # 賃貸契約書
-│   └── service/               # 業務委託契約書
-├── docker-compose.yml       # LangFuse環境
+├── contracts/               # 生成された契約書の保存先
+│   ├── rental/             # 賃貸契約書
+│   └── service/            # 業務委託契約書
+├── docker-compose.yml       # LangFuse用Docker設定
 ├── requirements.txt         # Python依存関係
-├── .env.example            # 環境変数テンプレート
-└── README.md               # このファイル
+└── .env.example            # 環境変数テンプレート
 ```
 
-## AI評価システム詳細
+## AI評価システム
 
 ### 評価項目（各1-10点）
 
 1. **法的適合性**: 日本法への準拠度
-2. **完整性**: 必要条項の網羅性  
+2. **完整性**: 必要条項の網羅性
 3. **明瞭性**: 条文の理解しやすさ
 4. **リスク管理**: 双方のリスク配慮
 5. **実用性**: 実際の運用における有効性
@@ -209,35 +175,28 @@ AI_agent/
 - **改善提案**: 実践的なアドバイス
 - **法的懸念点**: 専門的な指摘
 
-## LangFuseダッシュボード
+## LangFuseでのモニタリング
 
-すべてのAI処理がリアルタイムで監視されます：
+生成された契約書の作成プロセスは全てLangFuseでトレースされ、以下の情報を確認できます：
 
-- **トレース分析**: 各処理の詳細ログ
-- **パフォーマンス**: 応答時間・コスト分析
-- **品質管理**: 生成品質の継続的監視
-- **プロセス最適化**: ボトルネック特定
+- LLM呼び出しの詳細
+- 入力プロンプト
+- 生成結果
+- 処理時間
+- コスト情報
+- AI評価プロセス
 
-アクセス: http://localhost:3000
+管理画面: http://localhost:3000
 
 ## トラブルシューティング
 
-### OpenAI API関連
-```bash
-# APIキー確認
-echo $OPENAI_API_KEY
-```
+### OpenAI APIキーエラー
+`.env`ファイルに正しいAPIキーが設定されているか確認してください。
 
-### LangFuse関連
+### LangFuse接続エラー
+Docker Composeが正常に起動しているか確認してください：
 ```bash
-# サービス状態確認
 docker-compose ps
-
-# ログ確認
-docker-compose logs langfuse
-
-# 再起動
-docker-compose restart
 ```
 
 ### Web起動エラー
@@ -249,35 +208,5 @@ netstat -tulpn | grep :808
 python web_app.py  # 自動ポート検出
 ```
 
-### ファイル権限エラー
-```bash
-# contracts/ディレクトリ権限確認
-ls -la contracts/
-
-# 権限修正
-chmod 755 contracts/
-```
-
-## コントリビューション
-
-1. フォークしてブランチを作成
-2. 機能を実装・テスト
-3. プルリクエストを作成
-
-## ライセンス
-
-MIT License - 詳細は`LICENSE`ファイルを参照
-
-## サポート
-
-- **Issues**: GitHubのIssueで報告
-- **Documentation**: Wikiページを参照
-- **Community**: Discussionsで質問・議論
-
----
-
-**開発者**: [Your Name]  
-**最終更新**: 2025年1月8日  
-**バージョン**: 2.0.0
-
-> **Tip**: Web UIから始めることをお勧めします。最も直感的で全機能を利用できます！
+### ファイル保存エラー
+`contracts/`ディレクトリの書き込み権限を確認してください。

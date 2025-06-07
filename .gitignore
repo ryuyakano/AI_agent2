@@ -1,17 +1,16 @@
-# 機密情報
+# Generated contracts
+contracts/rental/*.txt
+contracts/rental/*.json
+contracts/service/*.txt
+contracts/service/*.json
+
+# Environment variables
 .env
 
-# ローカルデータ
-langfuse_data/
-postgres_data/
+# Python cache
 __pycache__/
 *.pyc
-*.log
 
-# OS・IDE依存ファイル
-.DS_Store
-.vscode/
-.idea/
-.env
-postgres_data/
-langfuse_data/
+# Virtual environment
+venv/
+env/

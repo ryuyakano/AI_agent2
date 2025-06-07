@@ -296,6 +296,7 @@ document.querySelector('form').addEventListener('submit', function(e) {
     // 評価実行確認
     if (!confirm('選択した契約書のAI評価を実行しますか？\\n\\n評価には数十秒かかる場合があります。')) {
         e.preventDefault();
+        return;
     }
 });
 </script>

@@ -9,6 +9,7 @@ import sys
 from typing import Dict, Any, Optional
 from pydantic import BaseModel
 from dotenv import load_dotenv
+from datetime import datetime
 
 # 環境変数をロード
 load_dotenv()
@@ -299,9 +300,21 @@ async def evaluate_contract(evaluation_request: EvaluationRequest):
         metadata = {}
         contract_type = None
         
-        for ctype in ['rental', 'service']:
-            file_path = f"contracts/{ctype}/{file_name}"
-            if os.path.exists(file_path):
+        # 利用可能な契約書から正確なパスを見つける
+        found_contract = None
+        all_contracts = storage.list_contracts()
+        
+        for contract in all_contracts:
+            contract_file_name = contract["file_path"].split('/')[-1]
+            if contract_file_name == file_name:
+                found_contract = contract
+                break
+        
+        if found_contract:
+            file_path = found_contract["file_path"]
+            contract_type = found_contract["type"]
+            
+            try:
                 with open(file_path, 'r', encoding='utf-8') as f:
                     contract_content = f.read()
                 
@@ -311,9 +324,11 @@ async def evaluate_contract(evaluation_request: EvaluationRequest):
                     import json
                     with open(metadata_path, 'r', encoding='utf-8') as f:
                         metadata = json.load(f)
-                
-                contract_type = ctype
-                break
+                else:
+                    metadata = found_contract.get("metadata", {})
+                    
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"ファイル読み込みエラー: {str(e)}")
         
         if not contract_content:
             raise HTTPException(status_code=404, detail="契約書が見つかりません")
@@ -449,12 +464,19 @@ async def create_service_web(
 @app.get("/evaluate", response_class=HTMLResponse)
 async def evaluation_page(request: Request, file: Optional[str] = None):
     """評価ページ"""
-    contracts = storage.list_contracts()
-    return templates.TemplateResponse("evaluation.html", {
-        "request": request,
-        "contracts": contracts,
-        "preselected_file": file
-    })
+    try:
+        contracts = storage.list_contracts()
+        return templates.TemplateResponse("evaluation.html", {
+            "request": request,
+            "contracts": contracts,
+            "preselected_file": file
+        })
+    except Exception as e:
+        return templates.TemplateResponse("evaluation.html", {
+            "request": request,
+            "contracts": [],
+            "error": str(e)
+        })
 
 @app.post("/evaluate", response_class=HTMLResponse)
 async def evaluate_contract_web(
@@ -483,6 +505,63 @@ async def evaluate_contract_web(
             "error": str(e),
             "file_name": file_name
         })
+
+@app.get("/api/test/evaluate/{file_name}")
+async def test_evaluate(file_name: str):
+    """テスト用評価API"""
+    try:
+        print(f"Test API: Looking for file: '{file_name}'")
+        
+        # 単純にファイル存在確認
+        all_contracts = storage.list_contracts()
+        print(f"Test API: Found {len(all_contracts)} contracts")
+        
+        found = None
+        for i, contract in enumerate(all_contracts):
+            contract_file_name = contract["file_path"].split('/')[-1]
+            print(f"Test API: Contract {i}: '{contract_file_name}' == '{file_name}' ? {contract_file_name == file_name}")
+            if contract_file_name == file_name:
+                found = contract
+                break
+        
+        if not found:
+            return {
+                "success": False,
+                "error": f"File not found: {file_name}",
+                "available_files": [c["file_path"].split('/')[-1] for c in all_contracts[:5]],
+                "search_term": file_name,
+                "exact_matches": [c["file_path"].split('/')[-1] for c in all_contracts if c["file_path"].split('/')[-1] == file_name]
+            }
+        
+        return {
+            "success": True,
+            "found_file": found["file_path"],
+            "type": found["type"],
+            "exists": os.path.exists(found["file_path"])
+        }
+    except Exception as e:
+        import traceback
+        return {"success": False, "error": str(e), "traceback": traceback.format_exc()}
+
+@app.get("/api/debug/contracts")
+async def debug_contracts():
+    """デバッグ用契約書一覧API"""
+    try:
+        contracts = storage.list_contracts()
+        return {
+            "success": True,
+            "contracts": [
+                {
+                    "file_name": contract["file_path"].split('/')[-1],
+                    "full_path": contract["file_path"],
+                    "type": contract["type"],
+                    "exists": os.path.exists(contract["file_path"])
+                }
+                for contract in contracts
+            ]
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
 
 @app.get("/health")
 async def health_check():
